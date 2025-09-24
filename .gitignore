@@ -1,0 +1,81 @@
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === IDE / Editor ===
+.vscode/
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# === Java / Maven / Spring Boot ===
+/backend/target/
+*.class
+*.jar
+*.war
+log/
+*.log
+/backend/.mvn
+/backend/mvnw*
+/backend/.settings/
+
+# === Node / Next / frontend ===
+/frontend/node_modules/
+/frontend/.next/
+/frontend/.turbo/
+/frontend/.turbo-cache/
+/frontend/.vercel/
+/frontend/.output/
+frontend/.cache/
+/frontend/.parcel-cache/
+/frontend/.pnpm-store
+
+# Next/React build artifacts that might appear at repo root
+/.next
+/.parcel-cache
+/.turbo
+
+# === Environment / secrets ===
+.env
+.env.*
+/frontend/.env
+/frontend/.env.*
+
+# === Lockfiles (keep these tracked generally) ===
+# package-lock.json, yarn.lock, pnpm-lock.yaml - typically keep in repo
+# (do NOT ignore lockfiles unless intentional)
+
+# === Logs / coverage / reports ===
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+coverage/
+report/
+
+# === Misc caches / outputs ===
+dist/
+build/
+out/
+.cache/
+*.tsbuildinfo
+.sass-cache/
+.storybook/
+
+# === Docker / local overrides ===
+docker-compose.override.yml
+docker-compose.*.local.yml
+
+# === Secret stores / credentials ===
+.secrets/
+credentials/
+
+# === OS-specific temp files ===
+*.tmp
+*.temp
+~$*

@@ -1,0 +1,60 @@
+services:
+  nginx:
+    image: nginx:1.29.1
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-net
+
+  backend:
+    build: ./backend
+    container_name: backend
+    expose:
+      - "8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=appuser
+      - DB_PASS=apppassword
+      - DB_NAME=pricehistory
+    depends_on:
+      - db
+    networks:
+      - app-net
+
+  db:
+    image: postgres:16
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppassword
+      POSTGRES_DB: pricehistory
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-net
+
+volumes:
+  db_data:
+
+networks:
+  app-net:
+    driver: bridge
