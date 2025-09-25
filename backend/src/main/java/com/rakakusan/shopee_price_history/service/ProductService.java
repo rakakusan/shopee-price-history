@@ -31,7 +31,6 @@ public class ProductService {
         Product savedProduct = productRepository.save(product);
 
         PriceHistory ph = new PriceHistory();
-        ph.setProduct(savedProduct);
         ph.setPrice(price);
         ph.setRecordDate(LocalDate.now());
 
@@ -54,7 +53,9 @@ public class ProductService {
     public ProductDetailResponse getProductBySku(String sku, LocalDate startDate, LocalDate endDate) {
         return productRepository.findBySku(sku)
                 .map(product -> {
+                    System.out.println(product.getUrl());
                     ProductDetailResponse response = productMapper.toProductDetailResponse(product);
+                    System.out.println(response.getUrl());
                     List<PriceHistory> histories = new LinkedList<>();
 
                     if (startDate != null && endDate != null) {
@@ -84,6 +85,7 @@ public class ProductService {
                             .map(productMapper::toPriceHistoryResponse)
                             .toList();
                     response.setPriceHistories(historyResponses);
+                    System.out.println(response);
                     return response;
                 })
                 .orElseThrow(() -> new RuntimeException("Product not found with SKU: " + sku));

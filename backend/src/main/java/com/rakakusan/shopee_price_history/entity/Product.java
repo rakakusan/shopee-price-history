@@ -37,8 +37,6 @@ public class Product {
 
     private String category;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<PriceHistory> priceHistories;
+    private String tag;
 
 }

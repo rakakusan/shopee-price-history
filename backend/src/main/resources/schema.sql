@@ -10,7 +10,8 @@ CREATE TABLE products (
     url TEXT,
     image TEXT,
     description TEXT,
-    category TEXT
+    category TEXT,
+    tag VARCHAR(10)
 );
 
 -- 인덱스

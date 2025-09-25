@@ -12,20 +12,20 @@ import com.rakakusan.shopee_price_history.entity.Product;
 import jakarta.transaction.Transactional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-  Optional<Product> findBySku(String sku);
+    Optional<Product> findBySku(String sku);
 
-  @Modifying
-  @Transactional
-  @Query(value = """
-      INSERT INTO products (sku, name, url, image, description, category)
-      VALUES (:sku, :name, :url, :image, :description, :category)
-      ON CONFLICT (sku) DO NOTHING
-      """, nativeQuery = true)
-  int insertIfNotExists(
-      @Param("sku") String sku,
-      @Param("name") String name,
-      @Param("url") String url,
-      @Param("image") String image,
-      @Param("description") String description,
-      @Param("category") String category);
+    @Modifying
+    @Transactional
+    @Query(value = """
+            INSERT INTO products (sku, name, url, image, description, category)
+            SELECT :sku, :name, :url, :image, :description, :category
+             WHERE NOT EXISTS (SELECT 1 FROM products p WHERE p.sku = :sku)
+            """, nativeQuery = true)
+    int insertIfNotExists(
+            @Param("sku") String sku,
+            @Param("name") String name,
+            @Param("url") String url,
+            @Param("image") String image,
+            @Param("description") String description,
+            @Param("category") String category);
 }

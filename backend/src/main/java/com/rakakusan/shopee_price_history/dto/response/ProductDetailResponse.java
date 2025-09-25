@@ -8,6 +8,7 @@ import lombok.Data;
 public class ProductDetailResponse {
   private Long id;
   private String name;
+  private String url;
   private String imageUrl;
   private String description;
   private String category;

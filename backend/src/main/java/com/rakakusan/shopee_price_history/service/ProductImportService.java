@@ -38,7 +38,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 public class ProductImportService {
 
   private static final int BATCH_SIZE = 1000;
-  private static final String BUCKET_NAME = "shinmebaby.shopee.price.history ";
+  private static final String BUCKET_NAME = "shinmebaby.shopee.price.history";
 
   private final ProductRepository productRepository;
   private final PriceHistoryRepository priceHistoryRepository;

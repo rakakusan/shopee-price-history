@@ -27,23 +27,18 @@ public interface PriceHistoryRepository extends JpaRepository<PriceHistory, Long
   @Modifying
   @Transactional
   @Query(value = """
-      WITH prod AS (
-        SELECT id
-        FROM products
-        WHERE sku = :sku
-        LIMIT 1
-      ),
-      last AS (
-        SELECT ph.price
-        FROM price_history ph
-        JOIN prod p ON ph.product_id = p.id
-        ORDER BY ph.record_date DESC
-        LIMIT 1
-      )
       INSERT INTO price_history(product_id, price, discount, record_date)
       SELECT p.id, :price, :discount, :recordDate
-      FROM prod p
-      WHERE NOT EXISTS (SELECT 1 FROM last WHERE price = :price)
-      """, nativeQuery = true)
+      FROM products p
+      WHERE p.sku = :sku
+        AND NOT EXISTS (
+          SELECT 1 FROM price_history ph
+          WHERE ph.product_id = p.id
+            AND ph.record_date = (
+              SELECT MAX(ph2.record_date) FROM price_history ph2 WHERE ph2.product_id = p.id
+            )
+            AND ph.price = :price
+        )
+        """, nativeQuery = true)
   int insertIfPriceChanged(String sku, int price, int discount, LocalDate recordDate);
 }

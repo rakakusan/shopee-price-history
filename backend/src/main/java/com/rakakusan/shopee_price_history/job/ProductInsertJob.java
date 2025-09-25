@@ -1,25 +1,7 @@
 package com.rakakusan.shopee_price_history.job;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
 import com.rakakusan.shopee_price_history.service.ProductImportService;
@@ -36,6 +18,8 @@ public class ProductInsertJob implements Job {
   @Override
   public void execute(JobExecutionContext context) {
     try {
+      // JobDataMap data = context.getMergedJobDataMap();
+      // String date = data.containsKey("date") ? data.getString("date") : LocalDate.now().toString();
       productImportService.importFromUrl(PRODUCT_FEED_URL);
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();

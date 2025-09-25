@@ -70,15 +70,23 @@ export default function ProductDetailClient({ product }: Props) {
     setLoading(false);
   };
 
-  let data = detail.priceHistories.map(h => ({
-    date: new Date(h.recordedDate).toLocaleDateString(),
-    price: h.price,
-  }));
+  const applyDiscount = (price: number, discount?: number) =>
+    Math.round(price * (100 - (discount ?? 0)) / 100);
+
+  let data = detail.priceHistories.map(h => {
+    const effective = applyDiscount(h.price, h.discount);
+    return {
+      date: new Date(h.recordedDate).toLocaleDateString(),
+      price: effective,
+      originalPrice: h.price,
+      discount: h.discount
+    };
+  });
 
   if (data.length === 1) {
     data = [
-      { date: '최초', price: data[0].price },
-      { date: '현재', price: data[0].price },
+      { date: '최초', price: data[0].price, originalPrice: data[0].originalPrice, discount: data[0].discount },
+      { date: '현재', price: data[0].price, originalPrice: data[0].originalPrice, discount: data[0].discount },
     ];
   }
 
@@ -119,12 +127,12 @@ export default function ProductDetailClient({ product }: Props) {
               descExpanded
                 ? { whiteSpace: 'pre-line' }
                 : {
-                    whiteSpace: 'pre-line',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                  }
+                  whiteSpace: 'pre-line',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }
             }
           >
             {detail.description}

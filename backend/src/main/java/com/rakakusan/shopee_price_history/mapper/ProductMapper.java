@@ -11,7 +11,7 @@ import com.rakakusan.shopee_price_history.entity.Product;
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
 
-  @Mapping(source = "url", target = "imageUrl")
+  @Mapping(source = "image", target = "imageUrl")
   ProductDetailResponse toProductDetailResponse(Product product);
   PriceHistoryResponse toPriceHistoryResponse(PriceHistory priceHistory);
 }
