@@ -6,6 +6,7 @@ export interface ProductDetail {
   imageUrl: string;
   description: string;
   category: string;
+  tag?: string | null;
   priceHistories: PriceHistory[];
 }
 

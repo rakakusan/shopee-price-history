@@ -10,8 +10,8 @@ import java.time.format.DateTimeFormatter;
 public class ProductPoster {
 
     public static void main(String[] args) throws Exception {
-        LocalDate start = LocalDate.parse("2025-09-01");
-        LocalDate end = LocalDate.parse("2025-09-25");
+        LocalDate start = LocalDate.parse("2025-09-26");
+        LocalDate end = LocalDate.parse("2025-09-26");
         DateTimeFormatter fmt = DateTimeFormatter.ISO_DATE;
 
         HttpClient client = HttpClient.newHttpClient();

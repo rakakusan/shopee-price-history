@@ -8,7 +8,7 @@ export default function MainContent() {
       <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start space-y-6">
         {/* 모바일: 텍스트 */}
         <h1 className="text-4xl font-bold text-gray-900 leading-tight lg:hidden text-center">
-          <span className="text-indigo-600">Save money</span> <br />
+          <span className="text-[#ef4030]">Save money</span> <br />
           on your next <br />
           Shopee purchase.
         </h1>
@@ -39,7 +39,7 @@ export default function MainContent() {
         {/* 데스크탑: 텍스트와 버튼 */}
         <div className="hidden lg:block">
           <h1 className="text-6xl font-bold text-gray-900 leading-tight">
-            <span className="text-indigo-600">Save money</span> <br />
+            <span className="text-[#ef4030]">Save money</span> <br />
             on your next <br />
             Shopee purchase.
           </h1>
@@ -47,7 +47,7 @@ export default function MainContent() {
             camelcamelcamel is a free Shopee price history, alerting you to good deals on products you love.
           </p>
           <Link href="/signup">
-            <button className="bg-indigo-600 text-white px-6 py-3 rounded-md text-lg font-medium hover:bg-indigo-700">
+            <button className="bg-gradient-to-b from-[#ef4030] to-[#f2653a] text-white px-6 py-3 rounded-md text-lg font-medium hover:from-[#d63a2a] hover:to-[#e5592f] transition-all duration-200">
               Sign up for free
             </button>
           </Link>

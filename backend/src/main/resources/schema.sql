@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- DROP TABLE IF EXISTS
 DROP TABLE IF EXISTS price_history;
 DROP TABLE IF EXISTS products;
@@ -16,6 +18,8 @@ CREATE TABLE products (
 
 -- 인덱스
 CREATE UNIQUE INDEX idx_products_sku ON products(sku);
+CREATE INDEX idx_products_name_trgm ON products USING GIN (name gin_trgm_ops);
+CREATE INDEX idx_products_name_lower_prefix ON products (lower(name) text_pattern_ops);
 
 -- price_history 테이블
 CREATE TABLE price_history (
@@ -28,3 +32,6 @@ CREATE TABLE price_history (
 
 -- 인덱스
 CREATE INDEX idx_price_history_product_record_date ON price_history(product_id, record_date DESC);
+
+
+

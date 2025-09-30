@@ -1,5 +1,6 @@
 package com.rakakusan.shopee_price_history.service;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -105,6 +106,14 @@ public class ProductService {
                     itemResponse.setLatestPriceHistory(latestPriceHistoryResponse);
                     return itemResponse;
                 })
+                .toList();
+    }
+
+    @Cacheable(value = "suggestions", key = "#keyword")
+    public List<String> getSuggestions(String keyword) {
+        return productRepository.searchSuggestions(keyword)
+                .stream()
+                .map(Product::getName)
                 .toList();
     }
 }

@@ -1,5 +1,6 @@
 package com.rakakusan.shopee_price_history.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import jakarta.transaction.Transactional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
         Optional<Product> findById(long id);
+
         Page<Product> findByTagIsNotNull(Pageable pageable);
 
         @Modifying
@@ -75,4 +77,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                         @Param("image") String image,
                         @Param("description") String description,
                         @Param("category") String category);
+
+        @Query(value = """
+                        SELECT * FROM products
+                        WHERE name ILIKE CONCAT('%', :keyword, '%')
+                           OR name % :keyword
+                        ORDER BY similarity(name, :keyword) DESC
+                        LIMIT 10
+                        """, nativeQuery = true)
+        List<Product> searchSuggestions(@Param("keyword") String keyword);
 }

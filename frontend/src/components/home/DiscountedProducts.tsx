@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import ProductList from '@/components/shared/ProductList';
 import { ProductSummary, ProductItemResponse, convertToProductSummary } from '@/models/Product';
 
-export default function PopularProducts() {
+export default function DiscountedProducts() {
   const [products, setProducts] = useState<ProductSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export default function PopularProducts() {
   return (
     <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <ProductList
-        title="Popular Products"
+        title="Discounted Products"
         titleLink="/popular"
         description="Check out the most popular products on Shopee right now."
         products={products}

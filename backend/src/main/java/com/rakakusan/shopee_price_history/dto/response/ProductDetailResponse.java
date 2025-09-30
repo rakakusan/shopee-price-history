@@ -12,5 +12,6 @@ public class ProductDetailResponse {
   private String imageUrl;
   private String description;
   private String category;
+  private String tag;
   private List<PriceHistoryResponse> priceHistories;
 }

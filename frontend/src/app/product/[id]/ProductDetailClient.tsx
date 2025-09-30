@@ -2,7 +2,7 @@
 
 import type { ProductDetail } from '@/models/Product';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CartesianGrid, Label, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface Props {
@@ -31,12 +31,12 @@ function formatMonthLabel(date: Date): string {
 // Helper function to format X-axis labels
 function formatXAxisLabel(value: string, period: string): string {
   const date = new Date(value);
-  
+
   if (period === '1M') {
     // For 1 month view, show M/D format
     return `${date.getMonth() + 1}/${date.getDate()}`;
   }
-  
+
   // For other periods, use month abbreviation or year
   return formatMonthLabel(date);
 }
@@ -54,6 +54,11 @@ export default function ProductDetailClient({ product }: Props) {
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState<ProductDetail>(product);
   const [descExpanded, setDescExpanded] = useState(false);
+
+  // 페이지 진입 시 스크롤을 맨 위로 이동
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // 전체 priceHistories의 기간 계산
   const allDates = detail.priceHistories.map(h => new Date(h.recordDate));
@@ -104,7 +109,7 @@ export default function ProductDetailClient({ product }: Props) {
   // 오늘 날짜 확인 및 마지막 데이터 복사
   const today = new Date().toISOString().slice(0, 10);
   const hasToday = priceHistories.some(h => h.recordDate === today);
-  
+
   if (!hasToday && priceHistories.length > 0) {
     const lastHistory = priceHistories[priceHistories.length - 1];
     priceHistories.push({
@@ -114,15 +119,15 @@ export default function ProductDetailClient({ product }: Props) {
   }
 
   let data = priceHistories.map(h => {
-      const effective = applyDiscount(h.price, h.discount);
-      const isoDate = new Date(h.recordDate).toISOString().slice(0, 10);
-      return {
-        date: isoDate,
-        price: effective,
-        originalPrice: h.price,
-        discount: h.discount
-      };
-    });
+    const effective = applyDiscount(h.price, h.discount);
+    const isoDate = new Date(h.recordDate).toISOString().slice(0, 10);
+    return {
+      date: isoDate,
+      price: effective,
+      originalPrice: h.price,
+      discount: h.discount
+    };
+  });
 
   if (data.length === 1) {
     const singleData = data[0];
@@ -154,72 +159,117 @@ export default function ProductDetailClient({ product }: Props) {
   const maxPrice = Math.ceil(rawMax / 1000) * 1000;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr_1fr] gap-8 items-start">
-        {/* 사진 */}
-        <div className="relative w-full h-96">
-          <Image
-            src={detail.imageUrl}
-            alt={detail.name}
-            layout="fill"
-            objectFit="contain"
-            className="rounded-md"
-            unoptimized
-          />
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        {/* 첫 번째 섹션: 이미지(40%) + 제품 정보(60%) */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex gap-8">
+            {/* 이미지 (40% width) */}
+            <div className="w-2/5">
+              <div className="relative w-full h-96">
+                <Image
+                  src={detail.imageUrl}
+                  alt={detail.name}
+                  layout="fill"
+                  objectFit="contain"
+                  className="rounded-md"
+                  unoptimized
+                />
+              </div>
+            </div>
+
+            {/* 제품 정보 (60% width) */}
+            <div className="w-3/5 flex flex-col">
+          {/* 제품 이름 */}
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">{detail.name}</h1>
+
+          {/* 가격 정보 - 한 줄로 배치 */}
+          <div className="mb-6 flex items-center gap-4">
+            {/* 할인된 가격 */}
+            <span className="text-3xl font-bold text-indigo-600">
+              {prices[prices.length - 1].toLocaleString()}₫
+            </span>
+
+            {/* 원래 가격 (취소선) */}
+            <span className="text-xl font-semibold text-gray-500 line-through">
+              {data[data.length - 1]?.originalPrice.toLocaleString()}₫
+            </span>
+
+            {/* 할인율 */}
+            {data[data.length - 1]?.discount > 0 && (
+              <span className="text-lg font-semibold text-red-600">
+                -{data[data.length - 1]?.discount}%
+              </span>
+            )}
+
+            {/* 태그 배지 */}
+            {detail.tag && (
+              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${detail.tag === 'best'
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-green-100 text-green-800'
+                }`}>
+                {detail.tag === 'best' ? 'Best Deal' : 'Good Deal'}
+              </span>
+            )}
+          </div>
+
+          {/* MAX/MIN 가격 */}
+          <div className="flex gap-8">
+            <div>
+              <p className="text-sm text-gray-600">MAX</p>
+              <p className="text-lg font-semibold text-red-600">{highest.toLocaleString()}₫</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">MIN</p>
+              <p className="text-lg font-semibold text-green-600">{lowest.toLocaleString()}₫</p>
+            </div>
+          </div>
+
+          {/* Shopee 링크 버튼 */}
+          <div className="mt-6">
+            <a
+              href={detail.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-6 py-3 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition"
+            >
+              View at Shopee
+            </a>
+          </div>
         </div>
-        {/* 설명 */}
-        <div className="flex flex-col justify-start">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">{detail.name}</h1>
-          <p
-            className={`text-gray-700 mb-2 transition-all duration-200`}
-            style={
-              descExpanded
-                ? { whiteSpace: 'pre-line' }
-                : {
-                  whiteSpace: 'pre-line',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }
-            }
-          >
-            {detail.description}
-          </p>
-          <button
-            type="button"
-            className="text-indigo-600 underline text-sm mb-2 self-start"
-            onClick={() => setDescExpanded(v => !v)}
-          >
-            {descExpanded ? 'Hide Description' : 'View Description'}
-          </button>
-          {/* <p className="mb-2">Category: {detail.category}</p> */}
         </div>
-        {/* 가격 정보 */}
-        <div
-          className="flex flex-col gap-2 px-4 py-3 border border-gray-300 rounded-xl text-center w-full md:max-w-xs mx-auto md:mx-0 md:self-start"
+        </div>
+
+        {/* 두 번째 섹션: Description */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Description</h2>
+        <p
+          className={`text-gray-700 mb-2 transition-all duration-200`}
+          style={
+            descExpanded
+              ? { whiteSpace: 'pre-line' }
+              : {
+                whiteSpace: 'pre-line',
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }
+          }
         >
-          <div className="text-2xl font-bold text-gray-900">
-            Current: <span className="text-indigo-600">{prices[prices.length - 1].toLocaleString()}₫</span>
-          </div>
-          <div className="text-lg text-red-600 font-semibold">
-            Max: {highest.toLocaleString()}₫
-          </div>
-          <div className="text-lg text-green-600 font-semibold">
-            Min: {lowest.toLocaleString()}₫
-          </div>
-          <a
-            href={detail.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 px-4 py-2 rounded bg-orange-500 text-white font-semibold hover:bg-orange-600 transition"
-          >
-            View at Shopee
-          </a>
+          {detail.description}
+        </p>
+        <button
+          type="button"
+          className="text-indigo-600 underline text-sm hover:text-indigo-800 transition"
+          onClick={() => setDescExpanded(v => !v)}
+        >
+          {descExpanded ? 'Hide Description' : 'View Description'}
+        </button>
         </div>
-      </div>
-      <div className="mt-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Price History</h2>
+
+        {/* 세 번째 섹션: 차트 (100% width) */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Price History</h2>
         {/* 기간 선택 버튼 */}
         <div className="flex gap-2 mb-6">
           {PERIODS.map((p, i) => (
@@ -243,8 +293,8 @@ export default function ProductDetailClient({ product }: Props) {
               margin={{ top: 20, right: rightMargin, left: 0, bottom: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tickFormatter={(value) => formatXAxisLabel(value, selected)}
                 tick={{ fontSize: 10 }}
                 interval="preserveStartEnd"
@@ -268,7 +318,7 @@ export default function ProductDetailClient({ product }: Props) {
                 tick={false}
                 axisLine={false}
               />
-              <Tooltip 
+              <Tooltip
                 formatter={(value) => [
                   `${Number(value).toLocaleString()}₫`,
                   'Price'
@@ -281,7 +331,7 @@ export default function ProductDetailClient({ product }: Props) {
                     day: 'numeric'
                   });
                 }}
-                contentStyle={{ 
+                contentStyle={{
                   fontSize: '12px',
                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                   border: '1px solid #ccc',
@@ -326,7 +376,7 @@ export default function ProductDetailClient({ product }: Props) {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
   );
 }

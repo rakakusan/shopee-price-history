@@ -63,4 +63,9 @@ public class ProductController {
             throws Exception {
         productImportService.importFromS3(date);
     }
+
+    @GetMapping("/suggestions")
+    public List<String> getSuggestions(@RequestParam String keyword) {
+        return productService.getSuggestions(keyword);
+    }
 }
