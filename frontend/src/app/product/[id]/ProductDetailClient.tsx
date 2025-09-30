@@ -17,6 +17,30 @@ const PERIODS = [
   { key: 'ALL', label: 'All', months: null },
 ];
 
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Helper function to format month labels
+function formatMonthLabel(date: Date): string {
+  const month = date.getMonth();
+  if (month === 0) { // January = show year as '25', '24', etc
+    return String(date.getFullYear()).slice(-2);
+  }
+  return MONTH_ABBR[month];
+}
+
+// Helper function to format X-axis labels
+function formatXAxisLabel(value: string, period: string): string {
+  const date = new Date(value);
+  
+  if (period === '1M') {
+    // For 1 month view, show M/D format
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  }
+  
+  // For other periods, use month abbreviation or year
+  return formatMonthLabel(date);
+}
+
 function getFromDate(months: number | null) {
   if (!months) return null;
   const d = new Date();
@@ -32,7 +56,7 @@ export default function ProductDetailClient({ product }: Props) {
   const [descExpanded, setDescExpanded] = useState(false);
 
   // 전체 priceHistories의 기간 계산
-  const allDates = detail.priceHistories.map(h => new Date(h.recordedDate));
+  const allDates = detail.priceHistories.map(h => new Date(h.recordDate));
   const minDate = allDates.length ? new Date(Math.min(...allDates.map(d => d.getTime()))) : null;
   const now = new Date();
 
@@ -73,20 +97,38 @@ export default function ProductDetailClient({ product }: Props) {
   const applyDiscount = (price: number, discount?: number) =>
     Math.round(price * (100 - (discount ?? 0)) / 100);
 
-  let data = detail.priceHistories.map(h => {
-    const effective = applyDiscount(h.price, h.discount);
-    return {
-      date: new Date(h.recordedDate).toLocaleDateString(),
-      price: effective,
-      originalPrice: h.price,
-      discount: h.discount
-    };
-  });
+  // Backend delivers histories in descending date order; sort ascending for chart (oldest -> newest)
+  const priceHistories = [...detail.priceHistories]
+    .sort((a, b) => new Date(a.recordDate).getTime() - new Date(b.recordDate).getTime());
+
+  // 오늘 날짜 확인 및 마지막 데이터 복사
+  const today = new Date().toISOString().slice(0, 10);
+  const hasToday = priceHistories.some(h => h.recordDate === today);
+  
+  if (!hasToday && priceHistories.length > 0) {
+    const lastHistory = priceHistories[priceHistories.length - 1];
+    priceHistories.push({
+      ...lastHistory,
+      recordDate: today
+    });
+  }
+
+  let data = priceHistories.map(h => {
+      const effective = applyDiscount(h.price, h.discount);
+      const isoDate = new Date(h.recordDate).toISOString().slice(0, 10);
+      return {
+        date: isoDate,
+        price: effective,
+        originalPrice: h.price,
+        discount: h.discount
+      };
+    });
 
   if (data.length === 1) {
+    const singleData = data[0];
     data = [
-      { date: '최초', price: data[0].price, originalPrice: data[0].originalPrice, discount: data[0].discount },
-      { date: '현재', price: data[0].price, originalPrice: data[0].originalPrice, discount: data[0].discount },
+      singleData,
+      { ...singleData, date: singleData.date }
     ];
   }
 
@@ -97,6 +139,13 @@ export default function ProductDetailClient({ product }: Props) {
   // Y축 width 동적 계산
   const maxPriceLength = Math.max(...prices).toLocaleString().length;
   const dynamicYAxisWidth = maxPriceLength * 10 + 20;
+
+  // Calculate dynamic right margin so right-side labels (ReferenceLine) are not clipped
+  const maxRightLabelLength = Math.max(
+    highest.toLocaleString().length,
+    lowest.toLocaleString().length
+  );
+  const rightMargin = maxRightLabelLength * 10 + 30;
 
   // Y축 범위 계산 (10% 여유, 1000단위)
   const rawMin = lowest * 0.9;
@@ -144,7 +193,7 @@ export default function ProductDetailClient({ product }: Props) {
           >
             {descExpanded ? 'Hide Description' : 'View Description'}
           </button>
-          <p className="mb-2">Category: {detail.category}</p>
+          {/* <p className="mb-2">Category: {detail.category}</p> */}
         </div>
         {/* 가격 정보 */}
         <div
@@ -191,10 +240,15 @@ export default function ProductDetailClient({ product }: Props) {
           <ResponsiveContainer>
             <LineChart
               data={data}
-              margin={{ top: 20, right: 0, left: 0, bottom: 20 }}
+              margin={{ top: 20, right: rightMargin, left: 0, bottom: 20 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={(value) => formatXAxisLabel(value, selected)}
+                tick={{ fontSize: 10 }}
+                interval="preserveStartEnd"
+              />
               {/* 왼쪽 y축: 가격 눈금 */}
               <YAxis
                 yAxisId="left"
@@ -203,6 +257,7 @@ export default function ProductDetailClient({ product }: Props) {
                 tickFormatter={v => v.toLocaleString()}
                 orientation="left"
                 width={dynamicYAxisWidth}
+                tick={{ fontSize: 10 }}
               />
               {/* 오른쪽 y축: 눈금 숨기고, 최고가/최저가 라벨만 */}
               <YAxis
@@ -213,14 +268,36 @@ export default function ProductDetailClient({ product }: Props) {
                 tick={false}
                 axisLine={false}
               />
-              <Tooltip formatter={v => v.toLocaleString()} />
-              {/* 계단형(strokeDasharray) + steppedLine */}
+              <Tooltip 
+                formatter={(value) => [
+                  `${Number(value).toLocaleString()}₫`,
+                  'Price'
+                ]}
+                labelFormatter={(label) => {
+                  const date = new Date(label);
+                  return date.toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  });
+                }}
+                contentStyle={{ 
+                  fontSize: '12px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  border: '1px solid #ccc',
+                  borderRadius: '6px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+                cursor={{ stroke: '#4fd1c5', strokeWidth: 1, strokeDasharray: '5 5' }}
+              />
+              {/* 계단형 라인, 점 제거 */}
               <Line
                 type="stepAfter"
                 dataKey="price"
                 stroke="#4fd1c5"
                 strokeWidth={3}
-                dot={{ r: 4, fill: "#4fd1c5" }}
+                dot={false}
+                activeDot={{ r: 6, fill: "#4fd1c5", stroke: "#fff", strokeWidth: 2 }}
                 isAnimationActive={false}
                 yAxisId="left"
               />
@@ -230,6 +307,7 @@ export default function ProductDetailClient({ product }: Props) {
                   value={`${highest.toLocaleString()}₫`}
                   position="right"
                   fill="red"
+                  fontSize={10}
                   fontWeight="bold"
                   offset={10}
                 />
@@ -240,6 +318,7 @@ export default function ProductDetailClient({ product }: Props) {
                   value={`${lowest.toLocaleString()}₫`}
                   position="right"
                   fill="green"
+                  fontSize={10}
                   fontWeight="bold"
                   offset={10}
                 />

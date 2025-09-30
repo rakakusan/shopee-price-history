@@ -58,13 +58,24 @@ export default function ProductList({ title, titleLink, description, products, c
                   {currencySymbol}{product.price.toLocaleString()}
                 </p>
                 <p className="text-indigo-600 font-bold text-lg"> {/* 기존 text-base → text-lg */}
-                  {currencySymbol}{product.discountedPrice.toLocaleString()}
+                  {currencySymbol}{Math.round(product.discountedPrice).toLocaleString()}
                 </p>
               </div>
+              {/* 태그 표시 */}
+              {product.tag && (
+                <div className="mb-2">
+                  <span className="inline-block bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {product.tag}
+                  </span>
+                </div>
+              )}
+              
               {/* 버튼 */}
               <div className="mt-3"> {/* 버튼 위쪽 여백 최소화 */}
                 <Link
                   href={product.linkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700"
                 >
                   View at Shopee

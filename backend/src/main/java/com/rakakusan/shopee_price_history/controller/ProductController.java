@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.rakakusan.shopee_price_history.dto.response.PriceHistoryResponse;
 import com.rakakusan.shopee_price_history.dto.response.ProductDetailResponse;
+import com.rakakusan.shopee_price_history.dto.response.ProductItemResponse;
 import com.rakakusan.shopee_price_history.entity.Product;
 import com.rakakusan.shopee_price_history.service.ProductImportService;
 import com.rakakusan.shopee_price_history.service.ProductService;
 
 import lombok.AllArgsConstructor;
-
 
 @RestController
 @RequestMapping("/api/products")
@@ -34,12 +34,18 @@ public class ProductController {
         return productService.getAllProducts();
     }
 
-    @GetMapping("/{sku}")
-    public ProductDetailResponse getProductBySku(
-        @PathVariable String sku,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-      return productService.getProductBySku(sku, startDate, endDate);
+    @GetMapping("/deals")
+    public List<ProductItemResponse> getDeals(@RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int limit) {
+        return productService.getDeals(page, limit);
+    }
+
+    @GetMapping("/{id}")
+    public ProductDetailResponse getProductById(
+            @PathVariable String id,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return productService.getProductById(id, startDate, endDate);
     }
 
     @GetMapping("/{id}/prices")
@@ -53,7 +59,8 @@ public class ProductController {
     }
 
     @PostMapping("/{date}")
-    public void createProductWithDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws Exception {
+    public void createProductWithDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date)
+            throws Exception {
         productImportService.importFromS3(date);
     }
 }

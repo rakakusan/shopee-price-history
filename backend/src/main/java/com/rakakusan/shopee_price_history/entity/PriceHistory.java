@@ -1,5 +1,6 @@
 package com.rakakusan.shopee_price_history.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import jakarta.persistence.Column;
@@ -25,7 +26,7 @@ public class PriceHistory {
     private Integer price;
 
     @Column(nullable = false)
-    private Integer discount;
+    private BigDecimal discount;
 
     @Column(name = "record_date", nullable = false)
     private LocalDate recordDate;

@@ -36,8 +36,8 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/price_history
     driver-class-name: org.postgresql.Driver
-    username: app
-    password: secret
+    username: rakakusan
+    password: 7TaWzATVmNWv06XOSV5Y0wFkeuZMce
   sql:
     init:
       mode: never

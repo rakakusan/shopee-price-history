@@ -1,10 +1,13 @@
 package com.rakakusan.shopee_price_history.service;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.rakakusan.shopee_price_history.dto.response.PriceHistoryResponse;
 import com.rakakusan.shopee_price_history.dto.response.ProductDetailResponse;
+import com.rakakusan.shopee_price_history.dto.response.ProductItemResponse;
 import com.rakakusan.shopee_price_history.entity.PriceHistory;
 import com.rakakusan.shopee_price_history.entity.Product;
 import com.rakakusan.shopee_price_history.mapper.ProductMapper;
@@ -50,12 +53,10 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public ProductDetailResponse getProductBySku(String sku, LocalDate startDate, LocalDate endDate) {
-        return productRepository.findBySku(sku)
+    public ProductDetailResponse getProductById(String id, LocalDate startDate, LocalDate endDate) {
+        return productRepository.findById(Long.parseLong(id))
                 .map(product -> {
-                    System.out.println(product.getUrl());
                     ProductDetailResponse response = productMapper.toProductDetailResponse(product);
-                    System.out.println(response.getUrl());
                     List<PriceHistory> histories = new LinkedList<>();
 
                     if (startDate != null && endDate != null) {
@@ -88,6 +89,22 @@ public class ProductService {
                     System.out.println(response);
                     return response;
                 })
-                .orElseThrow(() -> new RuntimeException("Product not found with SKU: " + sku));
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+    }
+
+    public List<ProductItemResponse> getDeals(int page, int limit) {
+        Pageable pageable = PageRequest.of(page, limit);
+        return productRepository.findByTagIsNotNull(pageable)
+                .map(product -> {
+                    PriceHistory latestPriceHistory = priceHistoryRepository
+                            .findTopByProductIdOrderByRecordDateDesc(product.getId())
+                            .orElse(null);
+                    PriceHistoryResponse latestPriceHistoryResponse = productMapper
+                            .toPriceHistoryResponse(latestPriceHistory);
+                    ProductItemResponse itemResponse = productMapper.toProductItemResponse(product);
+                    itemResponse.setLatestPriceHistory(latestPriceHistoryResponse);
+                    return itemResponse;
+                })
+                .toList();
     }
 }

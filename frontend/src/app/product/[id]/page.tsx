@@ -9,7 +9,7 @@ interface ProductDetailProps {
 export default async function ProductDetailPage(props: ProductDetailProps) {
   const params = await props.params;
   const res = await fetch(
-    `http://localhost:8080/api/products/1950436041`,
+    `http://localhost:8080/api/products/${params.id}`,
     { cache: "no-store" }
   );
   if (!res.ok) notFound();

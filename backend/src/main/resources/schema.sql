@@ -22,7 +22,7 @@ CREATE TABLE price_history (
     id BIGSERIAL PRIMARY KEY,
     product_id BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     price INT NOT NULL,
-    discount INT DEFAULT 0,
+    discount DECIMAL DEFAULT 0,
     record_date DATE NOT NULL
 );
 
